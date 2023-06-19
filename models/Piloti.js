@@ -1,91 +1,36 @@
 const mongoose = require("mongoose");
 
-const pilotaSchema = new mongoose.Schema({
-  Pilota: {
-    type: String,
-    required: true,
-  },
-  Nazionalita: {
-    type: String,
-    required: true,
-  },
-  Eta: {
-    type: Number,
-    required: true,
-  },
-  Team: {
-    type: String,
-    required: true,
-  },
-  Punti: {
-    type: Number,
-    required: true,
-  },
-  Bahrain: {
-    type: String,
-  },
-  Arabia_Saudita: {
-    type: String,
-  },
-  Australia: {
-    type: String,
-  },
-  Imola: {
-    type: String,
-  },
-  Miami: {
-    type: String,
-  },
-  Spagna: {
-    type: String,
-  },
-  Monaco: {
-    type: String,
-  },
-  Azerbaigian: {
-    type: String,
-  },
-  Canada: {
-    type: String,
-  },
-  Gran_Bretagna: {
-    type: String,
-  },
-  Austria: {
-    type: String,
-  },
-  Francia: {
-    type: String,
-  },
-  Ungheria: {
-    type: String,
-  },
-  Belgio: {
-    type: String,
-  },
-  Olanda: {
-    type: String,
-  },
-  Italia: {
-    type: String,
-  },
-  Singapore: {
-    type: String,
-  },
-  Stati_Uniti: {
-    type: String,
-  },
-  Messico: {
-    type: String,
-  },
-  Brasile: {
-    type: String,
-  },
-  Abu_Dhabi: {
-    type: String,
-  },
-});
-
-const Piloti = mongoose.model("Piloti", pilotaSchema);
+const Piloti = mongoose.model(
+  "Piloti",
+  new mongoose.Schema({
+    Pilota: String,
+    Nazionalita: String,
+    Eta: Number,
+    Team: String,
+    Punti: Number,
+    Bahrain: String,
+    Arabia_Saudita: String,
+    Australia: String,
+    Imola: String,
+    Miami: String,
+    Spagna: String,
+    Monaco: String,
+    Azerbaigian: String,
+    Canada: String,
+    Gran_Bretagna: String,
+    Austria: String,
+    Francia: String,
+    Ungheria: String,
+    Belgio: String,
+    Olanda: String,
+    Italia: String,
+    Singapore: String,
+    Giappone: String,
+    Stati_Uniti: String,
+    Messico: String,
+    Brasile: String,
+    Abu_Dhabi: String,
+  })
+);
 
 module.exports = Piloti;

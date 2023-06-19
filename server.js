@@ -1,60 +1,12 @@
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
 const mongoose = require("mongoose");
-const router = express.Router();
+const bodyParser = require("body-parser");
+
 const Piloti = require("./models/Piloti");
-const Circuiti = require("./models/Circuiti.js");
+const Circuiti = require("./models/Circuiti");
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Il mio sito React</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script src="bundle.js"></script>
-</body>
-</html>
-`;
-
-const distDir = path.join(__dirname, "dist");
-
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir);
-}
-
-const indexPath = path.join(distDir, "index.html");
-
-fs.writeFile(indexPath, htmlContent, (err) => {
-  if (err) {
-    console.error("Errore durante la scrittura del file index.html:", err);
-  } else {
-    console.log("File index.html generato con successo nella cartella dist.");
-  }
-});
-
-// Imposta il percorso della cartella "dist" come percorso statico
-app.use(express.static(path.join(__dirname, "dist")));
-
-// CORS permessi browser
-app.use((request, response, next) => {
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE"
-  );
-  response.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  next();
-});
 
 mongoose.set("strictQuery", false);
 mongoose.connect(
@@ -75,13 +27,32 @@ connection.on("disconnected", function () {
 });
 connection.on("Errore", console.error.bind(console, "Errore di connessione:"));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+app.use(bodyParser.json());
+
+// CORS permessi browser
+app.use((request, response, next) => {
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE"
+  );
+  response.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  next();
 });
 
-router.get("/piloti", async (req, res) => {
+const port = process.env.PORT || 3000;
+
+app.use(express.static(path.join(__dirname, "dist")));
+//app.use(express.json());
+
+app.post("/piloti", async (req, res) => {
+  console.log("sono nella route");
   try {
-    const piloti = await Piloti.find();
+    const piloti = await Piloti.find({});
+    console.log(piloti);
     res.status(200).json(piloti);
   } catch (error) {
     console.error("Errore durante la ricerca dei piloti:", error);
@@ -91,10 +62,10 @@ router.get("/piloti", async (req, res) => {
   }
 });
 
-router.get("/circuiti", async (req, res) => {
+app.post("/circuiti", async (req, res) => {
   try {
-    const circuiti = await Piloti.find();
-    res.status(200).json(piloti);
+    const circuiti = await Circuiti.find();
+    res.status(200).json(circuiti);
   } catch (error) {
     console.error("Errore durante la ricerca dei circuiti:", error);
     res.status(500).json({
@@ -103,13 +74,13 @@ router.get("/circuiti", async (req, res) => {
   }
 });
 
-router.post("/inserisci_pilota", async (req, res) => {
+app.post("/inserisci_pilota", async (req, res) => {
   try {
     const pilota = req.body.pilota;
 
     // REGEX
 
-    const nuovoPilota = await pilota.save();
+    const nuovoPilota = await Piloti.create(pilota);
     res.status(201).json(nuovoPilota);
   } catch (error) {
     console.error("Errore durante l'inserimento del pilota:", error);
@@ -117,16 +88,21 @@ router.post("/inserisci_pilota", async (req, res) => {
   }
 });
 
-router.post("/aggiorna_pilota", async (req, res) => {
+app.post("/aggiorna_pilota", async (req, res) => {
   try {
     const object = req.body.pilota;
 
     // REGEX
 
-    const pilota = await Pilota.findById(object.id);
+    const pilota = await Piloti.findById(object.id);
     if (!pilota) {
       return res.status(404).json({ error: "Pilota non trovato" });
     }
+
+    // Aggiorna i campi del pilota con i nuovi valori
+    pilota.nome = object.nome;
+    pilota.cognome = object.cognome;
+    // Aggiungi altri campi da aggiornare
 
     const pilotaAggiornato = await pilota.save();
     res.status(201).json(pilotaAggiornato);
@@ -138,13 +114,13 @@ router.post("/aggiorna_pilota", async (req, res) => {
   }
 });
 
-router.post("/cancella_pilota", async (req, res) => {
+app.post("/cancella_pilota", async (req, res) => {
   try {
     const object = req.body.pilota;
 
     // REGEX
 
-    const pilota = await Pilota.findById(object.id);
+    const pilota = await Piloti.findById(object.id);
     if (!pilota) {
       return res.status(404).json({ error: "Pilota non trovato" });
     }
@@ -160,13 +136,13 @@ router.post("/cancella_pilota", async (req, res) => {
   }
 });
 
-router.post("/inserisci_circuito", async (req, res) => {
+app.post("/inserisci_circuito", async (req, res) => {
   try {
     const circuito = req.body.circuito;
 
     // REGEX
 
-    const nuovoCircuito = await circuito.save();
+    const nuovoCircuito = await Circuiti.create(circuito);
     res.status(201).json(nuovoCircuito);
   } catch (error) {
     console.error("Errore durante l'inserimento del circuito:", error);
@@ -176,16 +152,21 @@ router.post("/inserisci_circuito", async (req, res) => {
   }
 });
 
-router.post("/aggiorna_circuito", async (req, res) => {
+app.post("/aggiorna_circuito", async (req, res) => {
   try {
     const object = req.body.circuito;
 
     // REGEX
 
-    const circuito = await Circuito.findById(object.id);
+    const circuito = await Circuiti.findById(object.id);
     if (!circuito) {
       return res.status(404).json({ error: "Circuito non trovato" });
     }
+
+    // Aggiorna i campi del circuito con i nuovi valori
+    circuito.nome = object.nome;
+    circuito.paese = object.paese;
+    // Aggiungi altri campi da aggiornare
 
     const circuitoAggiornato = await circuito.save();
     res.status(201).json(circuitoAggiornato);
@@ -197,19 +178,19 @@ router.post("/aggiorna_circuito", async (req, res) => {
   }
 });
 
-router.post("/cancella_circuito", async (req, res) => {
+app.post("/cancella_circuito", async (req, res) => {
   try {
     const object = req.body.circuito;
 
     // REGEX
 
-    const circuito = await Circuito.findById(object.id);
+    const circuito = await Circuiti.findById(object.id);
     if (!circuito) {
       return res.status(404).json({ error: "Circuito non trovato" });
     }
 
     await circuito.remove();
-    const listaCircuiti = await Piloti.find();
+    const listaCircuiti = await Circuiti.find();
     res.status(201).json(listaCircuiti);
   } catch (error) {
     console.error("Errore durante la cancellazione del circuito:", error);
