@@ -2,19 +2,22 @@ const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-
+const webpack = require("webpack");
+const webpackConfig = require("./webpack.config.js");
 const Piloti = require("./models/Piloti");
 const Circuiti = require("./models/Circuiti");
 
 const app = express();
 
-mongoose.set("strictQuery", false);
+const compiler = webpack(webpackConfig);
+app.use(
+  require("webpack-dev-middleware")(compiler, {
+    publicPath: webpackConfig.output.publicPath,
+  })
+);
+
 mongoose.connect(
-  "mongodb+srv://F1-2022-Statistics:F12022Statistics@f1-2022-statistics.m4cr5ea.mongodb.net/",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
+  "mongodb+srv://F1-2022-Statistics:F12022Statistics@f1-2022-statistics.m4cr5ea.mongodb.net/?retryWrites=true&w=majority"
 );
 
 const connection = mongoose.connection;
@@ -48,21 +51,13 @@ const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, "dist")));
 //app.use(express.json());
 
-app.post("/piloti", async (req, res) => {
-  console.log("sono nella route");
-  try {
-    const piloti = await Piloti.find({});
-    console.log(piloti);
-    res.status(200).json(piloti);
-  } catch (error) {
-    console.error("Errore durante la ricerca dei piloti:", error);
-    res.status(500).json({
-      error: "Si è verificato un errore durante la ricerca dei piloti.",
-    });
-  }
+app.get("/piloti", async (req, res, next) => {
+  const piloti = await Piloti.find({});
+  console.log("Piloti:", piloti);
+  res.status(200).json({ piloti: piloti });
 });
 
-app.post("/circuiti", async (req, res) => {
+app.get("/circuiti", async (req, res) => {
   try {
     const circuiti = await Circuiti.find();
     res.status(200).json(circuiti);
