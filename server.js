@@ -6,8 +6,6 @@ const webpack = require("webpack");
 const webpackConfig = require("./webpack.config.js");
 const Piloti = require("./models/Piloti");
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const prova = require("./models/prova");
-const { ObjectId } = require("mongodb");
 
 const app = express();
 

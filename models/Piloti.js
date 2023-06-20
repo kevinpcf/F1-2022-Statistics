@@ -5,9 +5,9 @@ const Piloti = mongoose.model(
   new mongoose.Schema({
     Pilota: String,
     Nazionalita: String,
-    Eta: String,
+    Eta: Number,
     Team: String,
-    Punti: String,
+    Punti: Number,
     Bahrain: String,
     Arabia_Saudita: String,
     Australia: String,
