@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-
 import { Button, IconButton } from "@chakra-ui/react";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import sfondo from "../public/images/sfondo.svg";
 import axios from "axios";
-import { useNavigate, Navigate } from "react-router";
+import { useNavigate } from "react-router";
+import logo from "../public/images/logo.svg";
 
 type Pilota = {
   Pilota: string;
@@ -179,13 +179,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col">
-      <Button
-        onClick={() => {
-          navigate("/ciao");
-        }}
-      >
-        Ciao
-      </Button>
       <div
         className="flex flex-col justify-between items-center h-screen w-full"
         style={{
@@ -196,11 +189,7 @@ const App: React.FC = () => {
       >
         <div className="flex flex-col justify-between items-center w-full h-full overflow-y-auto overflow-x-auto lg:mb-0">
           <div className="pt-10 pb-8">
-            <img
-              src={require("../public/images/logo.svg")}
-              width={100}
-              height={100}
-            />
+            <img src={logo} width={100} height={100} />
           </div>
           <div className="flex flex-col items-center w-full pb-36">
             <span className="text-white text-2xl font-bold pb-5">
@@ -331,6 +320,9 @@ const App: React.FC = () => {
                     <td>
                       <div className="flex items-center justify-center">
                         <IconButton
+                          onClick={() => {
+                            navigate(`/aggiorna-pilota/${e.Pilota}`);
+                          }}
                           size={"sm"}
                           colorScheme="blue"
                           aria-label="Search database"
@@ -371,10 +363,10 @@ const App: React.FC = () => {
                 size="lg"
                 _hover={{ bg: "#C01EE1" }}
                 onClick={async () => {
-                  //  router.push("/AggiungiPista");
+                  navigate("/aggiungi-pilota");
                 }}
               >
-                INSERISCI PISTA
+                INSERISCI PILOTA
               </Button>
             </div>
           </div>
@@ -454,6 +446,9 @@ const App: React.FC = () => {
                             colorScheme="blue"
                             aria-label="Search database"
                             icon={<EditIcon />}
+                            onClick={() => {
+                              navigate(`/aggiorna-circuito/${e.Circuito}`);
+                            }}
                           />
                         </div>
                       </td>
@@ -491,7 +486,7 @@ const App: React.FC = () => {
                 size="lg"
                 _hover={{ bg: "#C01EE1" }}
                 onClick={async () => {
-                  // router.push("/AggiungiCircuito");
+                  navigate("/aggiungi-circuito");
                 }}
               >
                 INSERISCI CIRCUITO

@@ -5,7 +5,10 @@ import { BrowserRouter } from "react-router-dom";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import "./styles.css";
 import App from "./App";
-import Ciao from "./Ciao";
+import AggiungiCircuito from "./AggiungiCircuito";
+import AggiungiPilota from "./AggiungiPilota";
+import AggiornaCircuito from "./AggiornaCircuito";
+import AggiornaPilota from "./AggiornaPilota";
 
 const theme = extendTheme({
   colors: {
@@ -20,7 +23,13 @@ ReactDOM.render(
     <ChakraProvider theme={theme}>
       <Routes>
         <Route path="/" element={<App />} />
-        <Route path="/ciao" element={<Ciao />} />
+        <Route path="/aggiungi-circuito" element={<AggiungiCircuito />} />
+        <Route path="/aggiungi-pilota" element={<AggiungiPilota />} />
+        <Route
+          path="/aggiorna-circuito/:param1"
+          element={<AggiornaCircuito />}
+        />
+        <Route path="/aggiorna-pilota/:param1" element={<AggiornaPilota />} />
       </Routes>
     </ChakraProvider>
   </BrowserRouter>,

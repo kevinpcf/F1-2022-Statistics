@@ -63,33 +63,39 @@ mongoose
       "mongodb+srv://F1-2022-Statistics:F12022Statistics@f1-2022-statistics.m4cr5ea.mongodb.net/?retryWrites=true&w=majority"
     ).db("F1-2022-Statistics");
 
+    app.post("/pilota", async (req, res) => {
+      try {
+        const pilota = await database
+          .collection("Piloti")
+          .findOne({ Pilota: req.body.pilota });
+        res.status(200).json({ pilota: pilota });
+      } catch {
+        console.error("Errore durante la ricerca del pilota:", error);
+        res.status(500).json({
+          error: "Si è verificato un errore durante la ricerca del pilota",
+        });
+      }
+    });
+
     app.get("/piloti", async (req, res, next) => {
       const piloti = await database.collection("Piloti").find().toArray();
       res.status(200).json({ piloti: piloti });
     });
 
-    app.get("/circuiti", async (req, res) => {
-      try {
-        const circuiti = await database.collection("Circuiti").find().toArray();
-        res.status(200).json({ circuiti: circuiti });
-      } catch (error) {
-        console.error("Errore durante la ricerca dei circuiti:", error);
-        res.status(500).json({
-          error: "Si è verificato un errore durante la ricerca dei circuiti.",
-        });
-      }
-    });
-
     app.post("/inserisci_pilota", async (req, res) => {
       try {
         const pilota = req.body.pilota;
-
-        // regex
-
-        const nuovoPilota = await Piloti.create(pilota);
-        res.status(201).json(nuovoPilota);
+        const flag = await database
+          .collection("Piloti")
+          .findOne({ Pilota: pilota.Pilota });
+        if (!flag) {
+          await database.collection("Piloti").insertOne(pilota);
+          res.status(201).json("ok");
+        } else {
+          res.status(500).json("Pilota già presente");
+        }
       } catch (error) {
-        console.error("Errore durante l'inserimento del pilota:", error);
+        pilotaerror("Errore durante l'inserimento del pilota:", error);
         res
           .status(500)
           .json({ error: "Errore durante l'inserimento del pilota" });
@@ -98,24 +104,14 @@ mongoose
 
     app.post("/aggiorna_pilota", async (req, res) => {
       try {
-        const object = req.body.pilota;
-
-        // regex
-
-        const pilota = await Piloti.findById(object.id);
-        if (!pilota) {
-          return res.status(404).json({ error: "Pilota non trovato" });
-        }
-
-        // Aggiorna i campi del pilota con i nuovi valori
-        pilota.nome = object.nome;
-        pilota.cognome = object.cognome;
-        // Aggiungi altri campi da aggiornare
-
-        const pilotaAggiornato = await pilota.save();
-        res.status(201).json(pilotaAggiornato);
+        const pilota = req.body.pilota;
+        const { _id, ...updatedPilota } = pilota;
+        await database
+          .collection("Piloti")
+          .findOneAndUpdate({ Pilota: pilota.Pilota }, { $set: updatedPilota });
+        res.status(201).json("ok");
       } catch (error) {
-        console.error("Errore durante l'aggiornamento del pilota:", error);
+        pilotaerror("Errore durante l'aggiornamento del pilota:", error);
         res
           .status(500)
           .json({ error: "Errore durante l'aggiornamento del pilota" });
@@ -129,9 +125,35 @@ mongoose
           .findOneAndDelete({ Pilota: req.body.pilota });
         res.status(200).json("ok");
       } catch (error) {
-        console.error("Errore durante la ricerca del pilota:", error);
+        pilotaerror("Errore durante la ricerca del pilota:", error);
         res.status(500).json({
           error: "Si è verificato un errore durante la ricerca dei piloti.",
+        });
+      }
+    });
+
+    app.post("/circuito", async (req, res) => {
+      try {
+        const circuito = await database
+          .collection("Circuiti")
+          .findOne({ Circuito: req.body.circuito });
+        res.status(200).json({ circuito: circuito });
+      } catch {
+        pilotaerror("Errore durante la ricerca del circuito:", error);
+        res.status(500).json({
+          error: "Si è verificato un errore durante la ricerca dei circuito",
+        });
+      }
+    });
+
+    app.get("/circuiti", async (req, res) => {
+      try {
+        const circuiti = await database.collection("Circuiti").find().toArray();
+        res.status(200).json({ circuiti: circuiti });
+      } catch (error) {
+        pilotaerror("Errore durante la ricerca dei circuiti:", error);
+        res.status(500).json({
+          error: "Si è verificato un errore durante la ricerca dei circuiti.",
         });
       }
     });
@@ -139,13 +161,17 @@ mongoose
     app.post("/inserisci_circuito", async (req, res) => {
       try {
         const circuito = req.body.circuito;
-
-        // regex
-
-        const nuovoCircuito = await Circuiti.create(circuito);
-        res.status(201).json(nuovoCircuito);
+        const flag = await database
+          .collection("Circuiti")
+          .findOne({ Round: circuito.Round });
+        if (!flag) {
+          await database.collection("Circuiti").insertOne(circuito);
+          res.status(201).json("ok");
+        } else {
+          res.status(500).json("Round già presente");
+        }
       } catch (error) {
-        console.error("Errore durante l'inserimento del circuito:", error);
+        pilotaerror("Errore durante l'inserimento del circuito:", error);
         res
           .status(500)
           .json({ error: "Errore durante l'inserimento del circuito" });
@@ -154,25 +180,24 @@ mongoose
 
     app.post("/aggiorna_circuito", async (req, res) => {
       try {
-        const object = req.body.circuito;
-
-        // regex
-
-        const circuito = await Circuiti.findById(object.id);
-        if (!circuito) {
-          return res.status(404).json({ error: "Circuito non trovato" });
+        const circuito = req.body.circuito;
+        const existingCircuito = await database
+          .collection("Circuiti")
+          .findOne({ Round: circuito.Round });
+        if (existingCircuito && !existingCircuito._id.equals(circuito._id)) {
+          res.status(500).json("Round già presente");
+        } else {
+          const { _id, ...updatedCircuito } = circuito;
+          await database
+            .collection("Circuiti")
+            .findOneAndUpdate(
+              { Round: circuito.Round, Circuito: circuito.Circuito },
+              { $set: updatedCircuito }
+            );
+          res.status(201).json("ok");
         }
-
-        // Aggiorna i campi del circuito con i nuovi valori
-        circuito.nome = object.nome;
-        circuito.paese = object.paese;
-
-        // Aggiungi altri campi da aggiornare
-
-        const circuitoAggiornato = await circuito.save();
-        res.status(201).json(circuitoAggiornato);
       } catch (error) {
-        console.error("Errore durante l'aggiornamento del circuito:", error);
+        pilotaerror("Errore durante l'aggiornamento del circuito:", error);
         res
           .status(500)
           .json({ error: "Errore durante l'aggiornamento del circuito" });
@@ -186,7 +211,7 @@ mongoose
           .findOneAndDelete({ Circuito: req.body.circuito });
         res.status(200).json("ok");
       } catch (error) {
-        console.error("Errore durante la ricerca dei circuiti:", error);
+        pilotaerror("Errore durante la ricerca dei circuiti:", error);
         res.status(500).json({
           error: "Si è verificato un errore durante la ricerca dei circuiti.",
         });
