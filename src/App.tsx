@@ -4,6 +4,7 @@ import { Button, IconButton } from "@chakra-ui/react";
 import { CloseIcon, EditIcon } from "@chakra-ui/icons";
 import sfondo from "../public/images/sfondo.svg";
 import axios from "axios";
+import { useNavigate, Navigate } from "react-router";
 
 type Pilota = {
   Pilota: string;
@@ -53,6 +54,7 @@ type Circuito = {
 };
 
 const App: React.FC = () => {
+  const navigate = useNavigate();
   const [piloti, setPiloti] = useState<Pilota[]>([]);
   const [circuiti, setCircuiti] = useState<Circuito[]>([]);
 
@@ -177,6 +179,13 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col">
+      <Button
+        onClick={() => {
+          navigate("/ciao");
+        }}
+      >
+        Ciao
+      </Button>
       <div
         className="flex flex-col justify-between items-center h-screen w-full"
         style={{
