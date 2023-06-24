@@ -82,6 +82,24 @@ mongoose
       res.status(200).json({ piloti: piloti });
     });
 
+    app.post("/filtra_piloti", async (req, res) => {
+      const filtro = req.body.request;
+      const query = {};
+
+      if (filtro.selected) {
+        query.Team = filtro.selected;
+      }
+
+      if (filtro.minValue || filtro.maxValue) {
+        query.Punti = { $gte: filtro.minValue, $lte: filtro.maxValue };
+      }
+      const pilotiFiltrati = await database
+        .collection("Piloti")
+        .find(query)
+        .toArray();
+      res.status(200).json({ piloti: pilotiFiltrati });
+    });
+
     app.post("/inserisci_pilota", async (req, res) => {
       try {
         const pilota = req.body.pilota;
@@ -148,7 +166,11 @@ mongoose
 
     app.get("/circuiti", async (req, res) => {
       try {
-        const circuiti = await database.collection("Circuiti").find().toArray();
+        const circuiti = await database
+          .collection("Circuiti")
+          .find()
+          .sort({ Round: 1 })
+          .toArray();
         res.status(200).json({ circuiti: circuiti });
       } catch (error) {
         pilotaerror("Errore durante la ricerca dei circuiti:", error);
@@ -216,6 +238,30 @@ mongoose
           error: "Si è verificato un errore durante la ricerca dei circuiti.",
         });
       }
+    });
+
+    app.post("/filtra_circuiti", async (req, res) => {
+      const filtro = req.body.request;
+      const query = {};
+
+      if (filtro.minValueLunghezzaGara || filtro.maxValueLunghezzaGara) {
+        query.Lunghezza_Gara = {
+          $gte: parseFloat(filtro.minValueLunghezzaGara),
+          $lte: parseFloat(filtro.maxValueLunghezzaGara),
+        };
+      }
+
+      if (filtro.minValueNumeroGiri || filtro.maxValueNumeroGiri) {
+        query.Numero_Giri = {
+          $gte: filtro.minValueNumeroGiri,
+          $lte: filtro.maxValueNumeroGiri,
+        };
+      }
+      const circuitiFiltrati = await database
+        .collection("Circuiti")
+        .find(query)
+        .toArray();
+      res.status(200).json({ circuiti: circuitiFiltrati });
     });
 
     //  Avvia il server sulla porta specificata

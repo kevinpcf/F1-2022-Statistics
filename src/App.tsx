@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Button, IconButton } from "@chakra-ui/react";
-import { CloseIcon, EditIcon } from "@chakra-ui/icons";
+import {
+  Button,
+  IconButton,
+  Input,
+  InputGroup,
+  RangeSlider,
+  RangeSliderFilledTrack,
+  RangeSliderThumb,
+  RangeSliderTrack,
+  Select,
+} from "@chakra-ui/react";
+import { CloseIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 import sfondo from "../public/images/sfondo.svg";
 import axios from "axios";
 import { useNavigate } from "react-router";
@@ -57,6 +67,11 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const [piloti, setPiloti] = useState<Pilota[]>([]);
   const [circuiti, setCircuiti] = useState<Circuito[]>([]);
+
+  const [selectPiloti, setSelectPiloti] = useState<[]>([]);
+  const [sliderPunti, setSliderPunti] = useState([0, 100]);
+  const [sliderLunghezzaGara, setSliderLunghezzaGara] = useState([0, 100]);
+  const [sliderNumeroGiri, setSliderNumeroGiri] = useState([0, 100]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -126,11 +141,33 @@ const App: React.FC = () => {
           })
         );
         setPiloti(pilotiResponse);
+
+        setSelectPiloti(
+          pilotiResponse.reduce((accumulator: any[], obj: { Team: any }) => {
+            if (!accumulator.includes(obj.Team)) {
+              accumulator.push(obj.Team);
+            }
+            return accumulator;
+          }, [])
+        );
+
+        let valoreMassimo = Number.NEGATIVE_INFINITY;
+        let valoreMinimo = Number.POSITIVE_INFINITY;
+
+        for (let oggetto of pilotiResponse) {
+          const valoreCorrente = oggetto.Punti;
+          if (valoreCorrente > valoreMassimo) {
+            valoreMassimo = valoreCorrente;
+          }
+          if (valoreCorrente < valoreMinimo) {
+            valoreMinimo = valoreCorrente;
+          }
+        }
+        setSliderPunti([valoreMinimo, valoreMassimo]);
       } catch (err) {
         console.log(err);
       }
     };
-
     fetchData();
   }, [circuiti]);
 
@@ -170,12 +207,63 @@ const App: React.FC = () => {
           })
         );
         setCircuiti(circuitiResponse);
+
+        let valoreMassimo = Number.NEGATIVE_INFINITY;
+        let valoreMinimo = Number.POSITIVE_INFINITY;
+
+        for (let oggetto of circuitiResponse) {
+          const valoreCorrente = parseInt(oggetto.Lunghezza_Gara, 10);
+          if (valoreCorrente > valoreMassimo) {
+            valoreMassimo = valoreCorrente;
+          }
+          if (valoreCorrente < valoreMinimo) {
+            valoreMinimo = valoreCorrente;
+          }
+        }
+
+        setSliderLunghezzaGara([valoreMinimo, valoreMassimo]);
+
+        let valoreMax = Number.NEGATIVE_INFINITY;
+        let valoreMin = Number.POSITIVE_INFINITY;
+
+        for (let oggetto of circuitiResponse) {
+          const valoreCorrente = oggetto.Numero_Giri;
+          if (valoreCorrente > valoreMax) {
+            valoreMax = valoreCorrente;
+          }
+          if (valoreCorrente < valoreMin) {
+            valoreMin = valoreCorrente;
+          }
+        }
+        setSliderNumeroGiri([valoreMin, valoreMax]);
       } catch (err) {
         console.log(err);
       }
     };
     fetchData();
   }, []);
+
+  const [pilotiSelected, setPilotiSelected] = useState({
+    filter: false,
+    type: "",
+  });
+  const [pilotiPunti, setPilotiPunti] = useState({
+    filter: false,
+    minValue: 0,
+    maxValue: 100,
+  });
+
+  const [circuitiLunghezzaGara, setCircuitiLunghezzaGara] = useState({
+    filter: false,
+    minValue: 0,
+    maxValue: 100,
+  });
+
+  const [circuitiNumeroGiri, setCircuitiNumeroGiri] = useState({
+    filter: false,
+    minValue: 0,
+    maxValue: 100,
+  });
 
   return (
     <div className="flex flex-col">
@@ -195,6 +283,109 @@ const App: React.FC = () => {
             <span className="text-white text-2xl font-bold pb-5">
               Tabella Piloti
             </span>
+            <div className="flex flex-row items-end justify-between w-[98%] pb-5">
+              <div className="w-3/4"></div>
+              <div className="flex flex-col items-center justify-center h-20 pr-4">
+                <p className="text-white text-lg font-semibold">Team</p>
+                <Select
+                  size={"md"}
+                  bg="white"
+                  focusBorderColor="#C01EE1"
+                  onChange={(event) => {
+                    const selectedValue = event.target.value;
+                    setPilotiSelected({
+                      filter: true,
+                      type: selectedValue,
+                    });
+                  }}
+                >
+                  {selectPiloti.map((e) => (
+                    <option value={e} className="bg-white text-black">
+                      {e}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="flex flex-col w-[15%] pr-4">
+                <p className="text-white text-lg font-semibold">Punti</p>
+                <div className="flex flex-row">
+                  <p className="text-white text-base pr-2">
+                    {pilotiPunti.minValue}
+                  </p>
+                  <RangeSlider
+                    size={"lg"}
+                    aria-label={["min", "max"]}
+                    defaultValue={[sliderPunti[0], sliderPunti[1]]}
+                    min={sliderPunti[0]}
+                    max={sliderPunti[1]}
+                    onChange={(value) => {
+                      setPilotiPunti({
+                        filter: true,
+                        minValue: value[0],
+                        maxValue: value[1],
+                      });
+                    }}
+                  >
+                    <RangeSliderTrack>
+                      <RangeSliderFilledTrack />
+                    </RangeSliderTrack>
+                    <RangeSliderThumb index={0}></RangeSliderThumb>
+                    <RangeSliderThumb index={1}></RangeSliderThumb>
+                  </RangeSlider>
+                  <p className="text-white text-base pl-2">
+                    {pilotiPunti.maxValue}
+                  </p>
+                </div>
+              </div>
+              <IconButton
+                onClick={async () => {
+                  try {
+                    let request;
+                    if (pilotiSelected.filter) {
+                      request = {
+                        selected: pilotiSelected.type,
+                      };
+                    }
+                    if (pilotiPunti.filter) {
+                      request = {
+                        ...request,
+                        minValue: pilotiPunti.minValue,
+                        maxValue: pilotiPunti.maxValue,
+                      };
+                    }
+                    const updatedPiloti = await axios.post("/filtra_piloti", {
+                      request: request,
+                    });
+
+                    setPiloti(updatedPiloti.data.piloti);
+                  } catch {}
+                }}
+                size={"sm"}
+                colorScheme="blue"
+                aria-label="Search database"
+                icon={<SearchIcon />}
+              />
+              <IconButton
+                className="pl-4"
+                onClick={async () => {
+                  try {
+                    const updatedPiloti = await axios.get("/piloti");
+                    setPiloti(updatedPiloti.data.piloti);
+                    setPilotiSelected({ filter: false, type: "" });
+                    setPilotiPunti({
+                      filter: false,
+                      minValue: 0,
+                      maxValue: 100,
+                    });
+                    setPiloti(updatedPiloti.data.piloti);
+                  } catch {}
+                }}
+                size={"sm"}
+                colorScheme="blue"
+                aria-label="Search database"
+                icon={<CloseIcon />}
+              />
+            </div>
             <div className="overflow-y-auto relative">
               <table className="font-body w-[98%] ml-auto mr-auto table-fixed shadow-md">
                 <tr className="bg-gray-800 text-gray-400 text-xs h-10 w-full">
@@ -374,6 +565,131 @@ const App: React.FC = () => {
             <span className="text-white text-2xl font-bold pb-5">
               Tabella Circuiti
             </span>
+            <div className="flex flex-row items-end justify-between w-[98%] pb-5">
+              <div className="w-3/4"></div>
+              <div className="flex flex-col w-[15%] pr-4">
+                <p className="text-white text-lg font-semibold">
+                  Lunghezza Gara
+                </p>
+                <div className="flex flex-row">
+                  <p className="text-white text-base pr-2">
+                    {circuitiLunghezzaGara.minValue}
+                  </p>
+                  <RangeSlider
+                    size={"lg"}
+                    aria-label={["min", "max"]}
+                    defaultValue={[
+                      sliderLunghezzaGara[0],
+                      sliderLunghezzaGara[1],
+                    ]}
+                    min={sliderLunghezzaGara[0]}
+                    max={sliderLunghezzaGara[1]}
+                    onChange={(value) => {
+                      setCircuitiLunghezzaGara({
+                        filter: true,
+                        minValue: value[0],
+                        maxValue: value[1],
+                      });
+                    }}
+                  >
+                    <RangeSliderTrack>
+                      <RangeSliderFilledTrack />
+                    </RangeSliderTrack>
+                    <RangeSliderThumb index={0}></RangeSliderThumb>
+                    <RangeSliderThumb index={1}></RangeSliderThumb>
+                  </RangeSlider>
+                  <p className="text-white text-base pl-2">
+                    {circuitiLunghezzaGara.maxValue}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col w-[15%] pr-4">
+                <p className="text-white text-lg font-semibold">Numero Giri</p>
+                <div className="flex flex-row">
+                  <p className="text-white text-base pr-2">
+                    {circuitiNumeroGiri.minValue}
+                  </p>
+                  <RangeSlider
+                    size={"lg"}
+                    aria-label={["min", "max"]}
+                    defaultValue={[sliderNumeroGiri[0], sliderNumeroGiri[1]]}
+                    min={sliderNumeroGiri[0]}
+                    max={sliderNumeroGiri[1]}
+                    onChange={(value) => {
+                      setCircuitiNumeroGiri({
+                        filter: true,
+                        minValue: value[0],
+                        maxValue: value[1],
+                      });
+                    }}
+                  >
+                    <RangeSliderTrack>
+                      <RangeSliderFilledTrack />
+                    </RangeSliderTrack>
+                    <RangeSliderThumb index={0}></RangeSliderThumb>
+                    <RangeSliderThumb index={1}></RangeSliderThumb>
+                  </RangeSlider>
+                  <p className="text-white text-base pl-2">
+                    {circuitiNumeroGiri.maxValue}
+                  </p>
+                </div>
+              </div>
+              <IconButton
+                className="pr-4"
+                onClick={async () => {
+                  try {
+                    let request;
+                    if (circuitiLunghezzaGara.filter) {
+                      request = {
+                        minValueLunghezzaGara: circuitiLunghezzaGara.minValue,
+                        maxValueLunghezzaGara: circuitiLunghezzaGara.maxValue,
+                      };
+                    }
+
+                    if (circuitiNumeroGiri.filter) {
+                      request = {
+                        ...request,
+                        minValueNumeroGiri: circuitiNumeroGiri.minValue,
+                        maxValueNumeroGiri: circuitiNumeroGiri.maxValue,
+                      };
+                    }
+                    const updatedCircuiti = await axios.post(
+                      "/filtra_circuiti",
+                      {
+                        request: request,
+                      }
+                    );
+                    setCircuiti(updatedCircuiti.data.circuiti);
+                  } catch {}
+                }}
+                size={"sm"}
+                colorScheme="blue"
+                aria-label="Search database"
+                icon={<SearchIcon />}
+              />
+              <IconButton
+                onClick={async () => {
+                  try {
+                    const updatedCircuiti = await axios.get("/circuiti");
+                    setCircuiti(updatedCircuiti.data.circuiti);
+                    setCircuitiLunghezzaGara({
+                      filter: false,
+                      maxValue: 100,
+                      minValue: 0,
+                    });
+                    setCircuitiNumeroGiri({
+                      filter: false,
+                      maxValue: 100,
+                      minValue: 0,
+                    });
+                  } catch {}
+                }}
+                size={"sm"}
+                colorScheme="blue"
+                aria-label="Search database"
+                icon={<CloseIcon />}
+              />
+            </div>
             <div className="overflow-y-auto relative">
               <table className="font-body w-[98%] ml-auto mr-auto table-fixed shadow-md">
                 <tr className="bg-gray-800 text-gray-400 text-xs h-10 w-full">
