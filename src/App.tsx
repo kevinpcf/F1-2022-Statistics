@@ -341,16 +341,28 @@ const App: React.FC = () => {
                 onClick={async () => {
                   try {
                     let request;
+
                     if (pilotiSelected.filter) {
                       request = {
+                        selectedFilter: true,
                         selected: pilotiSelected.type,
+                      };
+                    } else {
+                      request = {
+                        selectedFilter: false,
                       };
                     }
                     if (pilotiPunti.filter) {
                       request = {
                         ...request,
+                        puntiFilter: true,
                         minValue: pilotiPunti.minValue,
                         maxValue: pilotiPunti.maxValue,
+                      };
+                    } else {
+                      request = {
+                        ...request,
+                        puntiFilter: false,
                       };
                     }
                     const updatedPiloti = await axios.post("/filtra_piloti", {
@@ -641,6 +653,13 @@ const App: React.FC = () => {
                     let request;
                     if (circuitiLunghezzaGara.filter) {
                       request = {
+                        lunghezzaGaraFilter: true,
+                        minValueLunghezzaGara: circuitiLunghezzaGara.minValue,
+                        maxValueLunghezzaGara: circuitiLunghezzaGara.maxValue,
+                      };
+                    } else {
+                      request = {
+                        lunghezzaGaraFilter: false,
                         minValueLunghezzaGara: circuitiLunghezzaGara.minValue,
                         maxValueLunghezzaGara: circuitiLunghezzaGara.maxValue,
                       };
@@ -649,8 +668,14 @@ const App: React.FC = () => {
                     if (circuitiNumeroGiri.filter) {
                       request = {
                         ...request,
+                        numeroGiriFilter: true,
                         minValueNumeroGiri: circuitiNumeroGiri.minValue,
                         maxValueNumeroGiri: circuitiNumeroGiri.maxValue,
+                      };
+                    } else {
+                      request = {
+                        ...request,
+                        numeroGiriFilter: false,
                       };
                     }
                     const updatedCircuiti = await axios.post(

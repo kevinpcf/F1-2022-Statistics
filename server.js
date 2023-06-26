@@ -86,11 +86,11 @@ mongoose
       const filtro = req.body.request;
       const query = {};
 
-      if (filtro.selected) {
+      if (filtro.selectedFilter) {
         query.Team = filtro.selected;
       }
 
-      if (filtro.minValue || filtro.maxValue) {
+      if (filtro.puntiFilter) {
         query.Punti = { $gte: filtro.minValue, $lte: filtro.maxValue };
       }
       const pilotiFiltrati = await database
@@ -244,14 +244,14 @@ mongoose
       const filtro = req.body.request;
       const query = {};
 
-      if (filtro.minValueLunghezzaGara || filtro.maxValueLunghezzaGara) {
+      if (filtro.lunghezzaGaraFilter) {
         query.Lunghezza_Gara = {
           $gte: parseFloat(filtro.minValueLunghezzaGara),
           $lte: parseFloat(filtro.maxValueLunghezzaGara),
         };
       }
 
-      if (filtro.minValueNumeroGiri || filtro.maxValueNumeroGiri) {
+      if (filtro.numeroGiriFilter) {
         query.Numero_Giri = {
           $gte: filtro.minValueNumeroGiri,
           $lte: filtro.maxValueNumeroGiri,
@@ -260,6 +260,7 @@ mongoose
       const circuitiFiltrati = await database
         .collection("Circuiti")
         .find(query)
+        .sort({ Round: 1 })
         .toArray();
       res.status(200).json({ circuiti: circuitiFiltrati });
     });
