@@ -18,7 +18,7 @@ app.use(
 
 mongoose
   .connect(
-    "mongodb+srv://F1-2022-Statistics:F12022Statistics@f1-2022-statistics.m4cr5ea.mongodb.net/?retryWrites=true&w=majority",
+    "mongodb+srv://<username>:<password>@f1-2022-statistics.m4cr5ea.mongodb.net/?retryWrites=true&w=majority",
     {
       useNewUrlParser: true,
     }
